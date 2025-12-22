@@ -1,0 +1,9 @@
+# Build
+build/
+
+# VS Code
+.vscode/
+
+# Windows Zone.Identifier (ADS)
+*:Zone.Identifier
+*:Zone.Identifier:Zone.Identifier
