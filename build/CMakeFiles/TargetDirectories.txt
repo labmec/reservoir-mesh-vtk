@@ -1,4 +1,0 @@
-/home/erick/dev/Gmsh/TestErick/build/CMakeFiles/GlocalFiles.dir
-/home/erick/dev/Gmsh/TestErick/build/CMakeFiles/TestErick.dir
-/home/erick/dev/Gmsh/TestErick/build/CMakeFiles/edit_cache.dir
-/home/erick/dev/Gmsh/TestErick/build/CMakeFiles/rebuild_cache.dir

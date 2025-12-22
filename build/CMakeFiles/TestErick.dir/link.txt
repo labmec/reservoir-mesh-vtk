@@ -1,1 +1,0 @@
-/usr/bin/g++ -g CMakeFiles/TestErick.dir/meshVisualization.cpp.o -o TestErick  -Wl,-rpath,/home/erick/dev/firstPZ/neopz_install/pz/lib /home/erick/dev/firstPZ/neopz_install/pz/lib/libpz.so 
