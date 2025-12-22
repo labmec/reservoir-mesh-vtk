@@ -1,0 +1,307 @@
+{
+	"artifacts" : 
+	[
+		{
+			"path" : "TestErick"
+		}
+	],
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_executable",
+			"target_link_libraries"
+		],
+		"files" : 
+		[
+			"CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 14,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 16,
+				"parent" : 0
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "-g"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"backtrace" : 2,
+					"define" : "PZDEBUG"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "PZ_LOG"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "PZ_USING_LAPACK"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "PZ_USING_METIS"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "PZ_USING_MKL"
+				},
+				{
+					"backtrace" : 2,
+					"define" : "PZ_USING_TBB"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/Util"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/Util/Hash"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/Common"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/External/FAD"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/External/FAD/utils"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/External/FAD/Fad"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/External/FAD/TinyFad"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/External/FAD/TinyFad/Specializations"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/External/FAD/TinyFadET"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/Save"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/Integral"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/Solvers"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/Solvers/LinearSolvers"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/Solvers/EigenSolvers"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/Solvers/Multigrid"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/Matrix"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/Topology"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/Geom"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/SpecialMaps"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/Shape"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/Refine"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/External"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/External/Sloan"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/Material"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/Mesh"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/Analysis"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/Post"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/Frontal"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/StrMatrix"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/Pre"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/SubStruct"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/Random"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/Optimization"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/home/erick/dev/firstPZ/neopz_install/pz/include/Exception"
+				}
+			],
+			"language" : "CXX",
+			"sourceIndexes" : 
+			[
+				0
+			]
+		}
+	],
+	"id" : "TestErick::@6890427a1f51a3e7e1df",
+	"link" : 
+	{
+		"commandFragments" : 
+		[
+			{
+				"fragment" : "-g",
+				"role" : "flags"
+			},
+			{
+				"fragment" : "",
+				"role" : "flags"
+			},
+			{
+				"fragment" : "-Wl,-rpath,/home/erick/dev/firstPZ/neopz_install/pz/lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/home/erick/dev/firstPZ/neopz_install/pz/lib/libpz.so",
+				"role" : "libraries"
+			}
+		],
+		"language" : "CXX"
+	},
+	"name" : "TestErick",
+	"nameOnDisk" : "TestErick",
+	"paths" : 
+	{
+		"build" : ".",
+		"source" : "."
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				0
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "meshVisualization.cpp",
+			"sourceGroupIndex" : 0
+		}
+	],
+	"type" : "EXECUTABLE"
+}

@@ -1,0 +1,164 @@
+#include "DarcyFlow/TPZDarcyFlow.h"
+#include "DarcyFlow/TPZMixedDarcyFlow.h"
+#include "TPZAnalyticSolution.h"
+#include "TPZGenGrid2D.h"
+#include "TPZGenGrid3D.h"
+#include "TPZGeoMeshTools.h"
+#include "TPZGmshReader.h"
+#include "TPZRefPatternDataBase.h"
+#include "TPZVTKGenerator.h"
+#include "TPZVTKGeoMesh.h"
+#include "pzlog.h"
+#include <filesystem>
+#include <iostream>
+#include <string>
+#include <thread>
+
+using namespace std;
+
+// ================
+// Global variables
+// ================
+
+int gthreads = 0;
+
+// Exact solution
+TLaplaceExample1 gexact;
+
+// Permeability
+REAL gperm = 1.0;
+
+// Tolerance for error visualization
+REAL gtol = 1e-3;
+REAL ptol = 0.5;
+
+// Material IDs for domain and boundaries
+enum EnumMatIds { 
+  EDomain = 1, 
+  EFarfield = 2, 
+  ECylinder = 3, 
+  ETampa = 4,
+  ECurveTampa = 5,
+  EBoundary = 6,
+  EMarkedPyramide = 99, 
+  ENone = -1 };
+
+// ===================
+// Function prototypes
+// ===================
+
+// Creates a geometric mesh using TPZGenGrid2D
+TPZGeoMesh *createGeoMesh(std::string file);
+
+// Marks pyramid elements in the geometric mesh
+void MarkPyramids(TPZGeoMesh *gmesh);
+
+// =========
+// Functions
+// =========
+
+TPZGeoMesh *createGeoMesh(std::string file) {
+
+  std::string currentPath = std::filesystem::current_path();
+  std::string fatherPath = std::filesystem::path(currentPath).parent_path();
+  std::string path(fatherPath + "/gmsh/" + file);
+  TPZGeoMesh *gmesh = new TPZGeoMesh();
+  {
+    TPZGmshReader reader;
+    TPZManVector<std::map<std::string, int>, 4> stringtoint(4);
+    stringtoint[3]["volume_nearwell"] = EDomain;
+    stringtoint[3]["volume_reservoir"] = EDomain;
+
+    stringtoint[2]["surface_wellbore_cylinder"] = ECylinder;
+    stringtoint[2]["surface_wellbore_heel"] = ETampa;
+    stringtoint[2]["surface_wellbore_toe"] = ETampa;
+    stringtoint[2]["surface_farfield"] = EFarfield;
+    stringtoint[2]["surface_cap_rock"] = EFarfield;
+    stringtoint[2]["nome_do_msh"] = EBoundary;
+
+    stringtoint[1]["curve_wellbore"] = ENone;
+    stringtoint[1]["curve_heel"] = ECurveTampa;
+    stringtoint[1]["curve_toe"] = ECurveTampa;
+
+    stringtoint[0]["point_heel"] = ENone;
+    stringtoint[0]["point_toe"] = ENone;
+
+    reader.SetDimNamePhysical(stringtoint);
+    reader.GeometricGmshMesh(path, gmesh);
+  }
+
+  return gmesh;
+}
+
+void MarkPyramids(TPZGeoMesh *gmesh) {
+  int64_t nelements = gmesh->NElements();
+  for (int64_t el = 0; el < nelements; el++) {
+    TPZGeoEl *geoel = gmesh->Element(el);
+    if (!geoel)
+      continue;
+    if (geoel->Type() == EPiramide) {
+      geoel->SetMaterialId(EMarkedPyramide);
+    }
+  }
+}
+
+// MALHA COMPUTACIONAL
+
+TPZCompMesh* createCompMesh(TPZGeoMesh* gmesh) {
+  TPZCompMesh* cmesh = new TPZCompMesh(gmesh);
+
+  cmesh-> SetDimModel(gmesh->Dimension());
+  cmesh->SetDefaultOrder(1);
+  cmesh->SetAllCreateFunctionsContinuous();
+
+  TPZDarcyFlow *material = new TPZDarcyFlow(EDomain, gmesh-> Dimension());
+  material -> SetConstantPermeability(gperm);
+  cmesh -> InsertMaterialObject(material);
+  
+  TPZFMatrix<REAL> val1(1,1,0.);
+  TPZManVector<REAL,1> val2(1, 0.);
+  
+  int diritype = 0, neumanntype = 1, robinntype = 2;
+
+  cmesh ->InsertMaterialObject(
+    material ->CreateBC(material, EFarfield, diritype, val1, val2));
+
+  cmesh -> InsertMaterialObject(
+    material ->CreateBC(material, ECylinder, neumanntype, val1, val2));
+  
+  cmesh->AutoBuild();
+  cmesh->AdjustBoundaryElements();
+  cmesh->CleanUpUnconnectedNodes();
+  
+  return cmesh;
+
+
+}
+
+// =============
+// Main function
+// =============
+
+int main(int argc, char *const argv[]) {
+  
+  #ifdef PZ_LOG
+    TPZLogger::InitializePZLOG();
+  #endif
+  
+  cout << "Reading mesh and creating geometric mesh..." << endl;
+
+  // Read .msh file to create geometric mesh
+  TPZGeoMesh *gmesh = createGeoMesh("biggerBox.msh");
+
+  // Mark pyramid elements
+  MarkPyramids(gmesh);
+
+  cout << "Creating computational mesh..." << endl;
+  TPZCompMesh *cmesh = createCompMesh(gmesh);
+  
+  // Plot gmesh
+  std::ofstream out("geomesh.vtk");
+  TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out);
+
+  
+}
