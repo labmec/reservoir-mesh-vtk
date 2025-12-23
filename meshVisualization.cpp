@@ -6,6 +6,9 @@
 #include "TPZGeoMeshTools.h"
 #include "TPZGmshReader.h"
 #include "TPZRefPatternDataBase.h"
+#include "pzstepsolver.h"
+#include "TPZLinearAnalysis.h"
+#include "TPZSSpStructMatrix.h"
 #include "TPZVTKGenerator.h"
 #include "TPZVTKGeoMesh.h"
 #include "pzlog.h"
@@ -40,7 +43,7 @@ enum EnumMatIds {
   ETampa = 4,
   ECurveTampa = 5,
   EBoundary = 6,
-  EMarkedPyramide = 99, 
+  EMarkedPyramide = 100, 
   ENone = -1 };
 
 // ===================
@@ -116,7 +119,7 @@ TPZCompMesh* createCompMesh(TPZGeoMesh* gmesh) {
   cmesh -> InsertMaterialObject(material);
   
   TPZFMatrix<REAL> val1(1,1,0.);
-  TPZManVector<REAL,1> val2(1, 0.);
+  TPZManVector<REAL,1> val2(1, 3.);
   
   int diritype = 0, neumanntype = 1, robinntype = 2;
 
@@ -155,6 +158,16 @@ int main(int argc, char *const argv[]) {
 
   cout << "Creating computational mesh..." << endl;
   TPZCompMesh *cmesh = createCompMesh(gmesh);
+  cmesh->Print(std::cout);
+  TPZLinearAnalysis an(cmesh);
+  TPZSSpStructMatrix<STATE, TPZStructMatrixOR <STATE >> matsp(cmesh);
+  matsp.SetNumThreads(gthreads);
+  an.SetStructuralMatrix(matsp);
+  TPZStepSolver<STATE> step;
+  step.SetDirect(ECholesky);
+  an.SetSolver(step);
+  an.Run();
+  an.Solution().Print("Solution");
   
   // Plot gmesh
   std::ofstream out("geomesh.vtk");
