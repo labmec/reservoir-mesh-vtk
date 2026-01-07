@@ -24,12 +24,14 @@ using namespace std;
 // ================
 
 int gthreads = 0;
+// gthreads = std::thread::hardware_concurrency(); // Number of threads for parallel execution
+// matsp.SetNumThreads(gthreads);
 
 // Exact solution
 TLaplaceExample1 gexact;
 
 // Permeability
-REAL gperm = 1.0;
+REAL gperm = 5.0;
 
 // Tolerance for error visualization
 REAL gtol = 1e-3;
@@ -101,8 +103,11 @@ void MarkPyramids(TPZGeoMesh *gmesh) {
       continue;
     if (geoel->Type() == EPiramide) {
       geoel->SetMaterialId(EMarkedPyramide);
+      // cout << "Pyramidal element found with indexmaterial " << geoel->MaterialId() << " marked as " << EMarkedPyramide << endl;
     }
   }
+  gmesh->BuildConnectivity();
+  cout << "Pyramidal marker callled ";
 }
 
 // MALHA COMPUTACIONAL
@@ -129,6 +134,9 @@ TPZCompMesh* createCompMesh(TPZGeoMesh* gmesh) {
   cmesh -> InsertMaterialObject(
     material ->CreateBC(material, ECylinder, neumanntype, val1, val2));
   
+  cmesh -> InsertMaterialObject(
+    material ->CreateBC(material, ETampa, robinntype, val1, val2));
+  
   cmesh->AutoBuild();
   cmesh->AdjustBoundaryElements();
   cmesh->CleanUpUnconnectedNodes();
@@ -152,22 +160,30 @@ int main(int argc, char *const argv[]) {
 
   // Read .msh file to create geometric mesh
   TPZGeoMesh *gmesh = createGeoMesh("biggerBox.msh");
-
-  // Mark pyramid elements
-  MarkPyramids(gmesh);
+ 0,
 
   cout << "Creating computational mesh..." << endl;
   TPZCompMesh *cmesh = createCompMesh(gmesh);
-  cmesh->Print(std::cout);
+  // cmesh->Print(std::cout);
   TPZLinearAnalysis an(cmesh);
   TPZSSpStructMatrix<STATE, TPZStructMatrixOR <STATE >> matsp(cmesh);
   matsp.SetNumThreads(gthreads);
   an.SetStructuralMatrix(matsp);
   TPZStepSolver<STATE> step;
   step.SetDirect(ECholesky);
+  // if (useDirectSolver) {
+  //     step.SetDirect(ECholesky);
+  // } else {
+  //     step.SetCG(1000, TPZMatrixSolver<STATE>(), 1.e-12, 0);
+  // }
   an.SetSolver(step);
   an.Run();
   an.Solution().Print("Solution");
+
+  // mark pyramids
+  MarkPyramids(gmesh);
+ 
+  // TPZRefPatternTools::RefinePyramids(gmesh, EMarkedPyramide, 1);
   
   // Plot gmesh
   std::ofstream out("geomesh.vtk");
