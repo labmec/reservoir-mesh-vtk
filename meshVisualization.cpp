@@ -31,11 +31,7 @@ int gthreads = 0;
 TLaplaceExample1 gexact;
 
 // Permeability
-REAL gperm = 5.0;
-
-// Tolerance for error visualization
-REAL gtol = 1e-3;
-REAL ptol = 0.5;
+REAL gperm = 0.1;
 
 // Material IDs for domain and boundaries
 enum EnumMatIds { 
@@ -124,22 +120,30 @@ TPZCompMesh* createCompMesh(TPZGeoMesh* gmesh) {
   cmesh -> InsertMaterialObject(material);
   
   TPZFMatrix<REAL> val1(1,1,0.);
-  TPZManVector<REAL,1> val2(1, 3.);
+  TPZManVector<REAL,1> val2(1, 9.);
   
   int diritype = 0, neumanntype = 1, robinntype = 2;
 
+  // cout << "Boundary conditions setup..." << endl;
+  // // cout << val2.type() << endl;  
+  // cout << val2[0] << endl;
+  // cout << val2[1] << endl;
+  val2[0] = 0.;
+  
   cmesh ->InsertMaterialObject(
-    material ->CreateBC(material, EFarfield, diritype, val1, val2));
+    material ->CreateBC(material, EFarfield, neumanntype, val1, val2));
 
+  val2[0] = 0.;
   cmesh -> InsertMaterialObject(
     material ->CreateBC(material, ECylinder, neumanntype, val1, val2));
-  
+
+  val2[0] = 0.;
   cmesh -> InsertMaterialObject(
-    material ->CreateBC(material, ETampa, robinntype, val1, val2));
+    material ->CreateBC(material, ETampa, neumanntype, val1, val2));
   
   cmesh->AutoBuild();
-  cmesh->AdjustBoundaryElements();
-  cmesh->CleanUpUnconnectedNodes();
+  // cmesh->AdjustBoundaryElements();
+  // cmesh->CleanUpUnconnectedNodes();
   
   return cmesh;
 
@@ -171,17 +175,26 @@ int main(int argc, char *const argv[]) {
   an.SetStructuralMatrix(matsp);
   TPZStepSolver<STATE> step;
   step.SetDirect(ECholesky);
-  // if (useDirectSolver) {
-  //     step.SetDirect(ECholesky);
-  // } else {
-  //     step.SetCG(1000, TPZMatrixSolver<STATE>(), 1.e-12, 0);
-  // }
+  
+
   an.SetSolver(step);
   an.Run();
+
+  const std::string plotfile = "postproct"; 
+
+  constexpr int vtkRes{0}; 
+
+  TPZManVector<std::string, 2> fields = {"Pressure", "Flux"};
+  
+  auto vtk = TPZVTKGenerator(cmesh, fields, plotfile, vtkRes);  
+  vtk.Do();
+
+  
+  
   an.Solution().Print("Solution");
 
   // mark pyramids
-  MarkPyramids(gmesh);
+  //MarkPyramids(gmesh);
  
   // TPZRefPatternTools::RefinePyramids(gmesh, EMarkedPyramide, 1);
   
@@ -189,5 +202,5 @@ int main(int argc, char *const argv[]) {
   std::ofstream out("geomesh.vtk");
   TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out);
 
-  
+  return 0;
 }
