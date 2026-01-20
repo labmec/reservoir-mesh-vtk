@@ -25,8 +25,8 @@ if __name__ == "__main__":
     # GEOMETRY PARAMETERS
     # ===============================================================================
     # WELLBORE
-    lw: float = 6.0 # length (m) of the wellbore
-    Rw: float = 1.0 # radius (m) of the wellbore
+    lw: float = 8.0 # length (m) of the wellbore
+    Rw: float = 0.2 # radius (m) of the wellbore
     
     # RESERVOIR
     delta = 20
@@ -202,9 +202,9 @@ if __name__ == "__main__":
     sf10 = gm.model.occ.addSurfaceFilling(cl10)
     gm.model.occ.synchronize()
     
-#     # ===============================================================================
-#     # INCLINED SURFACE CLOSE TO THE WELLBORE
-#     # ===============================================================================
+    # ===============================================================================
+    # INCLINED SURFACE CLOSE TO THE WELLBORE
+    # ===============================================================================
 
     cl11 = gm.model.occ.addCurveLoop([c7_wb, l30_di, -l21_rey, l29_di])    # diagonal side wellbore to reservoir
     cl12 = gm.model.occ.addCurveLoop([c9_wb, -l31_di, -l22_rez, l30_di])   # diagonal top wellbore to reservoir
@@ -359,14 +359,23 @@ if __name__ == "__main__":
     s: float = 8.
     
     #function to crate and move the box around the reservoir
-    def bigger_box(nx: float, ny: float, nz: float):
-          
+    def bigger_box(nx: float, ny: float, nz: float, edge= False, lmt = False):
+    
+        if (edge is False) != (lmt is False):
+            raise ValueError("edge or limits is not given. Please provide both or none of them.")
+    
         if not (-1.0 <= nx <= 1.0) and (-1.0 <= ny <= 1.0) and (-1.0 <= nz <= 1.0):
-            raise ValueError("nx, ny, and nz must be between -1 and 1.")
+            raise ValueError("nx, ny, and nz must be between -1 and 1.")    
+        
+        if edge < 0:
+            raise ValueError("edge must be a non-negative value.")
           
         # parametrization of the bigger box the sx must be between -1 and 1 
         # and the limits of the bigger box are given by s ( the multiplication 
-        # factior) multiply by 2 minos 2)
+        # factior) multiply by 2 minos 2:
+        # its a linear function where sx(1) = 2*s-2, sx(0) = s-1 and sx(-1) = 0
+        # so bean a function as y = ax + b, we have b = s -1 and a = s -1
+        # so the final function is sx(nx) = (s-1)*nx + (s-1) witch is iqual to sx (nx) = (s-1)*(nx + 1)
         
         sx: float = (s - 1) * (nx + 1) 
         sy: float = (s - 1) * (ny + 1) 
@@ -376,20 +385,26 @@ if __name__ == "__main__":
         # the ideia is when the n get too close to tghe sides it wont get more close 
         # than the parameters set as se sx, sy or sz subtracting the reservoir size divided by 8**2
         
-        if nx >= 0.72:
-            sx = sx - lw/11**(2)*nx
-        if nx <= -0.72:
-            sx = sx + lw/11**(2)*(-nx)
-        if ny >= 0.72:
-            sy = sy - Hr/8**(2)*ny
-        if ny <= -0.72:
-            sy = sy + Hr/8**(2)*(-ny)
-        if nz >= 0.72:
-            sz = sz - Hr/8**(2)*nz
-        if nz <= -0.72:
-            sz = sz + Hr/8**(2)*(-nz)
+        # the lmt ( limit) is to define a limit when the box get too close to the edge 
+        # of the reservior. It garantee that when the box is getting close it do not jump to the 
+        # inteval edge
         
-        # coordinates and based on the coordenates of the reservoir
+        if edge and lmt > 0:
+  
+            if nx >= lmt:
+                sx = sx - edge*nx
+            if nx <= -lmt:
+                sx = sx + edge*(-nx)
+            if ny >= lmt:
+                sy = sy - edge*ny
+            if ny <= -lmt:
+                sy = sy + edge*(-ny)
+            if nz >= lmt:
+                sz = sz - edge*nz
+            if nz <= -lmt:
+                sz = sz + edge*(-nz)
+            
+        # coordinates and based on the coordinates of the point 13 in the reservoir 
         x: float = -(lr -lw) /2
         y: float = -Wr /2
         z: float = -Hr /2
@@ -399,19 +414,27 @@ if __name__ == "__main__":
         b: float = s*Wr
         c: float = s*Hr   
         
-        # the coordenate of the bigger box according to the coordenate of the reservoir
-        x = x *(1 + (sx)) 
+        # the coordinate of the bigger box according to the coordinate of the reservoir
+        x = x *(1 + sx) 
         y = y *(1 + sy)
         z = z *(1 + sz)
+        
+        # x = x * sx 
+        # y = y * sy
+        # z = z * sz
         
         # so the output is basically the parameters sx, sy, sz, ( witch controls the position
         # of the reservio inside the big box ) x, y, z, a, b, c
         return sx, sy, sz, x, y, z, a, b, c
     
     # nx. ny and nz goes from -1 to 1 and define the position of the box around the reservoir
-    sx, sy, sz, x, y, z, a, b, c =bigger_box(nx =1.0, ny = 1.0, nz = 1.0)
+    # so the output is basically the parameters sx, sy, sz, ( witch controls the position
+    # of the reservio inside the big box ) x, y, z, a, b, c
+    # for the bigger box function you can also set the limit (lmt) of approach to the reservoir
+    # and the edge correction to not cut the reservoir (edge),
+    sx, sy, sz, x, y, z, a, b, c =bigger_box(nx = 0.0, ny = 0.0, nz = 0.0)
     
-    
+    # create the bigger box
     vl8 = gm.model.occ.addBox(x , y , z , a, b, c, tag= 19)
             
     #box based in the reservoir surfaces 
@@ -462,7 +485,7 @@ if __name__ == "__main__":
     surfs = gm.model.occ.getEntities(dim=2)
     print("Superfícies existentes:", surfs)
 
- # ==============================================================================
+    # ==============================================================================
    
     # 2D MESH
     gm.model.mesh.generate(2)

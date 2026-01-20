@@ -30,9 +30,8 @@ if __name__ == "__main__":
     
     # RESERVOIR
     delta = 20
-       
-    # PARAMETER TO INCREASE THE BOX SIZE AROUND THE RESERVOIR
-    Sr: float = 8.0
+    
+    Sr: float = 8.0 # factor to increase the box size around the reservoir
     
     lr: float = lw + delta * Rw # length (m) of the reservoir
     Wr: float = delta * Rw # width (m) of the reservoir
@@ -351,15 +350,16 @@ if __name__ == "__main__":
     #                          MESH AROUND IT ALL BIGGER RESERVOIR
     # ==============================================================================
     
+    
     #function to crate and move the box around the reservoir
     def bigger_box(ex: float, ey: float, ez: float, edge= False, lmt = False):
-    
-        if (edge is False) != (lmt is False):
-            raise ValueError("edge or limits is not given. Please provide both or none of them.")
-    
+      
         if any(v < 0.0 or v > 2.0 for v in (ex, ey, ez)):
             raise ValueError("ex, ey and ez must be between 0 and 2.")
         
+        if (edge is False) != (lmt is False):
+            raise ValueError("edge or limits is not given. Please provide both or none of them.")
+    
         if edge < 0:
             raise ValueError("edge must be a non-negative value.")
           
@@ -370,9 +370,9 @@ if __name__ == "__main__":
         # so bean a function as y = ax + b, we have b = s -1 and a = s -1
         # so the final function is sx(nx) = (s-1)*nx + (s-1) witch is iqual to sx (nx) = (s-1)*(nx + 1)
         
-        sx: float = (Sr - 1) * (ex + 1) 
-        sy: float = (Sr - 1) * (ey + 1) 
-        sz: float = (Sr - 1) * (ez + 1)
+        # sx: float = (Sr - 1) * (ex + 1) 
+        # sy: float = (Sr - 1) * (ey + 1) 
+        # sz: float = (Sr - 1) * (ez + 1)
         
         # adjustments to not cut the reservoir
         # the ideia is when the n get too close to tghe sides it wont get more close 
@@ -402,26 +402,29 @@ if __name__ == "__main__":
         y: float = -Wr /2
         z: float = -Hr /2
         
-        # size of the bigger box according to the reservoir size multipy by s 
-        lrbb: float = Sr*(lr -lw) + lw
+        # size of the bigger box according to the reservoir size multipy by Sr
+        # lrbb: float = Sr*(lr -lw) + lw
+        lrbb: float = Sr*(lr-lw) 
         Wrbb: float = Sr*Wr
         Hrbb: float = Sr*Hr   
         
         # the coordinate of the bigger box according to the coordinate of the reservoir
-        x = x *(1 + sx) 
-        y = y *(1 + sy)
-        z = z *(1 + sz)
+        x = x - (ex/2)*(lrbb - lr)
+        y = y - (ey/2)*(Wrbb - Wr)
+        z = z - (ez/2)*(Hrbb - Hr)
                
         # so the output is basically the parameters sx, sy, sz, ( witch controls the position
         # of the reservio inside the big box ) x, y, z, lrbb, Wrbb, Hrbb
-        return sx, sy, sz, x, y, z, lrbb, Wrbb, Hrbb
+        return x, y, z, lrbb, Wrbb, Hrbb
     
-    # nx. ny and nz goes from -1 to 1 and define the position of the box around the reservoir
+    # nx. ny and nz goes from 0 to 2 and define the position of the box around the reservoir
     # so the output is basically the parameters sx, sy, sz, ( witch controls the position
     # of the reservio inside the big box ) x, y, z, a, b, c
     # for the bigger box function you can also set the limit (lmt) of approach to the reservoir
     # and the edge correction to not cut the reservoir (edge),
-    sx, sy, sz, x, y, z, lrbb, Wrbb, Hrbb =bigger_box(ex = 0.0, ey = 0.0, ez = 0.0)
+   
+   
+    x, y, z, lrbb, Wrbb, Hrbb =bigger_box(ex = 2.0, ey = 1.0, ez = 2.0)
     
     # create the bigger box
     vl8 = gm.model.occ.addBox(x , y , z , lrbb, Wrbb, Hrbb, tag= 19)
