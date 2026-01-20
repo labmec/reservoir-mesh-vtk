@@ -128,22 +128,22 @@ TPZCompMesh* createCompMesh(TPZGeoMesh* gmesh) {
   // // cout << val2.type() << endl;  
   // cout << val2[0] << endl;
   // cout << val2[1] << endl;
-  val2[0] = 0.;
   
-  cmesh ->InsertMaterialObject(
-    material ->CreateBC(material, EFarfield, neumanntype, val1, val2));
+  val2[0] = 3.;
+    cmesh ->InsertMaterialObject(
+    material ->CreateBC(material, EFarfield, diritype, val1, val2));
 
   val2[0] = 0.;
   cmesh -> InsertMaterialObject(
     material ->CreateBC(material, ECylinder, neumanntype, val1, val2));
 
-  val2[0] = 0.;
+  val2[0] = 1.;
   cmesh -> InsertMaterialObject(
-    material ->CreateBC(material, ETampa, neumanntype, val1, val2));
+    material ->CreateBC(material, ETampa, diritype, val1, val2));
   
   cmesh->AutoBuild();
-  // cmesh->AdjustBoundaryElements();
-  // cmesh->CleanUpUnconnectedNodes();
+  cmesh->AdjustBoundaryElements();
+  cmesh->CleanUpUnconnectedNodes();
   
   return cmesh;
 
@@ -163,7 +163,7 @@ int main(int argc, char *const argv[]) {
   cout << "Reading mesh and creating geometric mesh..." << endl;
 
   // Read .msh file to create geometric mesh
-  TPZGeoMesh *gmesh = createGeoMesh("biggerBox.msh");
+  TPZGeoMesh *gmesh = createGeoMesh("Moving_Reservoir.msh");
  0,
 
   cout << "Creating computational mesh..." << endl;
@@ -194,7 +194,7 @@ int main(int argc, char *const argv[]) {
   an.Solution().Print("Solution");
 
   // mark pyramids
-  //MarkPyramids(gmesh);
+  MarkPyramids(gmesh);
  
   // TPZRefPatternTools::RefinePyramids(gmesh, EMarkedPyramide, 1);
   

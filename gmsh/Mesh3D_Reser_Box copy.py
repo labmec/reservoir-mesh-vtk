@@ -25,8 +25,8 @@ if __name__ == "__main__":
     # GEOMETRY PARAMETERS
     # ===============================================================================
     # WELLBORE
-    lw: float = 1.0 # length (m) of the wellbore
-    Rw: float = 0.2 # radius (m) of the wellbore
+    lw: float = 6.0 # length (m) of the wellbore
+    Rw: float = 1.0 # radius (m) of the wellbore
     
     # RESERVOIR
     delta = 20
@@ -349,18 +349,71 @@ if __name__ == "__main__":
     # ==============================================================================
     
     #coordenates and size of the bigger box
-    s: float = 2.5
     
-    x: float = -(lr -lw) /2
-    y: float = -Wr /2
-    z: float = -Hr /2
+    # razão de proporcionalidade para s [2, 4, 6, 8] -se 
+    # os coeficientes de multiplicação dos vertices [sx, sy, sz] 
+    # variando entre 0  e os proporcionais máximos [2, 6, 10, 14]
     
-    a: float = s*lr
-    b: float = s*Wr
-    c: float = s*Hr
     
-    vl8 = gm.model.occ.addBox(x, y, z, a, b, c, tag= 19)
+    # parameter to increase the box size
+    s: float = 8.
+    
+    #function to crate and move the box around the reservoir
+    def bigger_box(nx: float, ny: float, nz: float):
+          
+        if not (-1.0 <= nx <= 1.0) and (-1.0 <= ny <= 1.0) and (-1.0 <= nz <= 1.0):
+            raise ValueError("nx, ny, and nz must be between -1 and 1.")
+          
+        # parametrization of the bigger box the sx must be between -1 and 1 
+        # and the limits of the bigger box are given by s ( the multiplication 
+        # factior) multiply by 2 minos 2)
         
+        sx: float = (s - 1) * (nx + 1) 
+        sy: float = (s - 1) * (ny + 1) 
+        sz: float = (s - 1) * (nz + 1)
+        
+        # adjustments to not cut the reservoir
+        # the ideia is when the n get too close to tghe sides it wont get more close 
+        # than the parameters set as se sx, sy or sz subtracting the reservoir size divided by 8**2
+        
+        if nx >= 0.72:
+            sx = sx - lw/11**(2)*nx
+        if nx <= -0.72:
+            sx = sx + lw/11**(2)*(-nx)
+        if ny >= 0.72:
+            sy = sy - Hr/8**(2)*ny
+        if ny <= -0.72:
+            sy = sy + Hr/8**(2)*(-ny)
+        if nz >= 0.72:
+            sz = sz - Hr/8**(2)*nz
+        if nz <= -0.72:
+            sz = sz + Hr/8**(2)*(-nz)
+        
+        # coordinates and based on the coordenates of the reservoir
+        x: float = -(lr -lw) /2
+        y: float = -Wr /2
+        z: float = -Hr /2
+        
+        # size of the bigger box according to the reservoir size multipy by s 
+        a: float = s*(lr -lw) + lw
+        b: float = s*Wr
+        c: float = s*Hr   
+        
+        # the coordenate of the bigger box according to the coordenate of the reservoir
+        x = x *(1 + (sx)) 
+        y = y *(1 + sy)
+        z = z *(1 + sz)
+        
+        # so the output is basically the parameters sx, sy, sz, ( witch controls the position
+        # of the reservio inside the big box ) x, y, z, a, b, c
+        return sx, sy, sz, x, y, z, a, b, c
+    
+    # nx. ny and nz goes from -1 to 1 and define the position of the box around the reservoir
+    sx, sy, sz, x, y, z, a, b, c =bigger_box(nx =1.0, ny = 1.0, nz = 1.0)
+    
+    
+    vl8 = gm.model.occ.addBox(x , y , z , a, b, c, tag= 19)
+            
     #box based in the reservoir surfaces 
     surf_box = gm.model.occ.addSurfaceLoop([sf1, sf2, sf3, sf4, sf5, sf6]) 
     vol_box = gm.model.occ.addVolume([surf_box])
@@ -438,7 +491,8 @@ if __name__ == "__main__":
     # ===============================================================================
     # EXHIBIT THE MODEL SO FAR
     # ===============================================================================
-    gm.write(r"\\wsl.localhost\\Ubuntu-22.04\\home\\erick\\dev\\Gmsh\\TestErick\\gmsh\\wellPlusReservoir.msh")
+    gm.write("/home/erick/dev/Gmsh/TestErick/gmsh/Moving_Reservoir.msh")
+
     
     if '-nopopup' not in sys.argv:
         gm.fltk.run()
