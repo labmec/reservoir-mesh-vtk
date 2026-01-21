@@ -123,11 +123,7 @@ TPZCompMesh* createCompMesh(TPZGeoMesh* gmesh) {
   TPZManVector<REAL,1> val2(1, 9.);
   
   int diritype = 0, neumanntype = 1, robinntype = 2;
-
-  // cout << "Boundary conditions setup..." << endl;
-  // // cout << val2.type() << endl;  
-  // cout << val2[0] << endl;
-  // cout << val2[1] << endl;
+  
   
   val2[0] = 3.;
     cmesh ->InsertMaterialObject(

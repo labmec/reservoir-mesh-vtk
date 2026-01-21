@@ -8,8 +8,8 @@ General.Terminal = 1;
 Geometry.SnapPoints = 0;
 
 // Wellbore dimensions
-Lw = 20;
-Rw = 1;
+Lw = 10;
+Rw = 0.2;
 
 // Scale factor between wellbore and near-well region
 Snw = 5;
@@ -28,9 +28,9 @@ Hr = Hnw*Sr;
 Wr = Wnw*Sr;
 
 // Eccentricity of the near-well region inside the reservoir (between -1 and 1)
-EccX = 0.8;
-EccY = 0.8;
-EccZ = 0.8;
+EccX = 0.0;
+EccY = 0.0;
+EccZ = 0.0;
 
 // Meshing parameters
 h_div = 8;       // Horizontal division of the wellbore

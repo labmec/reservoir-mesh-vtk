@@ -25,8 +25,8 @@ if __name__ == "__main__":
     # GEOMETRY PARAMETERS
     # ===============================================================================
     # WELLBORE
-    lw: float = 8.0 # length (m) of the wellbore
-    Rw: float = 0.2 # radius (m) of the wellbore
+    lw: float = 8. # length (m) of the wellbore
+    Rw: float = 0.5 # radius (m) of the wellbore
     
     # RESERVOIR
     delta = 20
@@ -357,8 +357,8 @@ if __name__ == "__main__":
         if (edge is False) != (lmt is False):
             raise ValueError("edge or limits is not given. Please provide both or none of them.")
     
-        if any(v < 0.0 or v > 2.0 for v in (ex, ey, ez)):
-            raise ValueError("ex, ey and ez must be between 0 and 2.")
+        if any(v < -1.0 or v > 1.0 for v in (ex, ey, ez)):
+            raise ValueError("ex, ey and ez must be between -1 and 1.")
         
         if edge < 0:
             raise ValueError("edge must be a non-negative value.")
@@ -403,7 +403,7 @@ if __name__ == "__main__":
         z: float = -Hr /2
         
         # size of the bigger box according to the reservoir size multipy by s 
-        lrbb: float = Sr*(lr -lw) + lw
+        lrbb: float = Sr*(lr-lw) + lw
         Wrbb: float = Sr*Wr
         Hrbb: float = Sr*Hr   
         
@@ -418,7 +418,7 @@ if __name__ == "__main__":
     
     # nx. ny and nz goes from -1 to 1 and define the position of the box around the reservoir
     # so the output is basically the parameters sx, sy, sz, ( witch controls the position
-    # of the reservio inside the big box ) x, y, z, a, b, c
+    # of the reservio inside the big box ) x, y, z, lrbb, Wrbb, Hrbb
     # for the bigger box function you can also set the limit (lmt) of approach to the reservoir
     # and the edge correction to not cut the reservoir (edge),
     sx, sy, sz, x, y, z, lrbb, Wrbb, Hrbb =bigger_box(ex = 0.0, ey = 0.0, ez = 0.0)
