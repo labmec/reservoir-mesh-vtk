@@ -7,5 +7,7 @@
 			"path": "../../firstPZ/neopz"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"cmake.options.statusBarVisibility": "visible"
+	}
 }

@@ -7,6 +7,13 @@ import gmsh
 import numpy as np
 
 
+print(gmsh.__version__)
+print(hasattr(gmsh.model.mesh, "triangulate"))
+
+print("gmsh version:", gmsh.__version__)
+print("mesh has triangulate:", hasattr(gmsh.model.mesh, "triangulate"))
+
+
 
 if __name__ == "__main__":
     gm.initialize()
@@ -25,13 +32,13 @@ if __name__ == "__main__":
     # GEOMETRY PARAMETERS
     # ===============================================================================
     # WELLBORE
-    lw: float = 20.0 # length (m) of the wellbore
+    lw: float = 2.0 # length (m) of the wellbore
     Rw: float = 1. # radius (m) of the wellbore
     
     # RESERVOIR
     delta = 20
     
-    Sr: float = 2.0 # factor to increase the box size around the reservoir
+    Sr: float = 4. # factor to increase the box size around the reservoir
     
     lr: float = lw + delta * Rw # length (m) of the reservoir
     Wr: float = delta * Rw # width (m) of the reservoir
@@ -177,7 +184,7 @@ if __name__ == "__main__":
     cl4_zx = gm.model.occ.addCurveLoop([l14_rex, l22_rez, l15_rex, l18_rez])    # +positive side plane ZX
 
     # SUFACES CONNECTING THE RESERVOIR TO THE WELLBORE
-    sf1 = gm.model.occ.addPlaneSurface([cl1_zy]) 
+    sf1 = gm.model.occ.addPlaneSurface([cl1_zy])
     sf2 = gm.model.occ.addPlaneSurface([cl2_zy]) 
     sf3 = gm.model.occ.addPlaneSurface([cl3_zx]) 
     sf4 = gm.model.occ.addPlaneSurface([cl4_zx]) 
@@ -190,6 +197,15 @@ if __name__ == "__main__":
     # SURFACES CONNECTING THE RESERVOIR TO THE WELLBORE
     sf5 = gm.model.occ.addPlaneSurface([cl5_si])
     sf6 = gm.model.occ.addPlaneSurface([cl6_si])
+   
+
+    # copies auxiliares para visualizacao
+    sf1_aux = gm.model.occ.addPlaneSurface([cl1_zy]) 
+    sf2_aux = gm.model.occ.addPlaneSurface([cl2_zy])
+    sf3_aux = gm.model.occ.addPlaneSurface([cl3_zx])
+    sf4_aux = gm.model.occ.addPlaneSurface([cl4_zx])
+    sf5_aux = gm.model.occ.addPlaneSurface([cl5_si])
+    sf6_aux = gm.model.occ.addPlaneSurface([cl6_si])
 
     # INCLINE SURFACES CLOSE TO THE WELLBORE HEEL
     cl7 = gm.model.occ.addCurveLoop([c1_wb, -l26_di, -l17_rey, l25_di])   # diagonal side wellbore to reservoir
@@ -271,6 +287,8 @@ if __name__ == "__main__":
     vl6 = gm.model.occ.addVolume([sfl6])
     gm.model.occ.synchronize()
     
+
+    
     # ===============================================================================
     # APPLY TRANSFINITE PROGESSSION TO LINES
     # ===============================================================================
@@ -332,7 +350,6 @@ if __name__ == "__main__":
 
     gm.model.occ.synchronize()
     
-    
     gmode = gm.model.getEntities(dim = 2)
     
     for s in gm.model.getEntities(dim=2):
@@ -341,11 +358,18 @@ if __name__ == "__main__":
 
     for v in gm.model.getEntities(dim=3):
         gm.model.mesh.setTransfiniteVolume(v[1])
-        
+    
+    surf_aux = [sf1_aux, sf2_aux, sf3_aux, sf4_aux, sf5_aux, sf6_aux]   
     for s in gm.model.getEntities(dim=2):
+        # if s[1] not in surf_aux:  # excluding specific surface tags
+        #     gm.model.mesh.setRecombine(2, s[1])  # quadrilateral elements
+
+        # else :
+        #     gm.model.mesh.setTransfiniteSurface(s[1])
+        
         gm.model.mesh.setRecombine(2, s[1])  # quadrilateral elements
-
-
+   
+    gm.model.occ.synchronize()
     # ==============================================================================
     #                          MESH AROUND IT ALL BIGGER RESERVOIR
     # ==============================================================================
@@ -403,21 +427,60 @@ if __name__ == "__main__":
                
         # so the output is basically the parameters sx, sy, sz, ( witch controls the position
         # of the reservio inside the big box ) x, y, z, lrbb, Wrbb, Hrbb
-        return x, y, z, lrbb, Wrbb, Hrbb
+        return x, y, z, x0, y0,  z0, lrbb, Wrbb, Hrbb
     
     # get the parameters to create the bigger box
-    x, y, z, lrbb, Wrbb, Hrbb =bigger_box(ex = 0.0, ey = 0.0, ez = 0.0)
+    x, y, z, x0, y0, z0, lrbb, Wrbb, Hrbb =bigger_box(ex = 0.0, ey = 0.0, ez = 0.0)
     
     # create the bigger box
     vl8 = gm.model.occ.addBox(x , y , z , lrbb, Wrbb, Hrbb, tag= 19)
             
     #box based in the reservoir surfaces 
-    surf_box = gm.model.occ.addSurfaceLoop([sf1, sf2, sf3, sf4, sf5, sf6]) 
+    
+    
+    # surfaces = [sf1, sf2, sf3, sf4, sf5, sf6]
+    # cp_surf =[ gm.model.occ.copy([(2, i)]) for i in surfaces]
+    
+    
+    # for i in gm.model.getEntities(dim=2):
+    #     gm.model.mesh.setTransfiniteSurface(i[1])
+     
+    #     if i[1] not in [5,6,7,8,9,10]:  # excluding specific surface tags
+    #         gm.model.mesh.setRecombine(2, i[1])  # quadrilateral elements
+    #     else:
+    #         # contour = gm.model.occ.copy([(2, i[1])])
+    #         gm.model.mesh.setRecombine(2, i[1])
+        
+  
+  
+  
+  # ==============================================================================
+  # TRYING TO SELECT CURVES TO APPLY TRANSFINITE  
+  # ==============================================================================
+     
+
+    # ==============================================================================
+    # THE END OF TRYING TO SELECT CURVES TO APPLY TRANSFINITE
+    # ==============================================================================
+   
+   
+    
+    surf_box = gm.model.occ.addSurfaceLoop([sf1_aux, sf2_aux, sf3_aux, sf4_aux, sf5_aux, sf6_aux]) 
     vol_box = gm.model.occ.addVolume([surf_box])
     
     ar1 = gm.model.occ.cut([(3, vl8)], [(3, vol_box)], tag= 9)
     gm.model.occ.remove([(3, vl8)], recursive=False)
     gm.model.occ.remove([(3, vol_box)], recursive=False)
+    gm.model.occ.remove([(2,surf_box)], recursive=False)
+    #dimTags = [
+    #(2, 35),
+    #(2, 36),
+    #(2, 37),
+    #(2, 38),
+    #(2, 39),
+    #(2, 40)
+    # ]
+    # gm.model.occ.remove(dimTags=dimTags, recursive= False)
 
     result_entities = ar1[0]
 
@@ -437,9 +500,7 @@ if __name__ == "__main__":
 
     gm.model.addPhysicalGroup(2, [sf29_obb, sf30_obb, sf31_obb, sf32_obb, sf33_obb, sf34_obb],tag = 111, name= "surface_farfield_reservoir")
 
-
     gm.model.occ.synchronize()
-    
     # ==============================================================================
     #                     END OF THE MESH AROUND IT ALL BIGGER RESERVOIR
     # ==============================================================================
@@ -481,14 +542,14 @@ if __name__ == "__main__":
     # Malha 3D
     gm.model.mesh.generate(3)
     
-    gm.model.mesh.removeDuplicateNodes()  # remove nós duplicados
-    gm.model.mesh.removeDuplicateElements()  # remove elementos duplicados
+    # gm.model.mesh.removeDuplicateNodes()  # remove nós duplicados
+    # gm.model.mesh.removeDuplicateElements()  # remove elementos duplicados
     
 
     # ===============================================================================
     # EXHIBIT THE MODEL SO FAR
     # ===============================================================================
-    gm.write("/home/erick/dev/Gmsh/TestErick/gmsh/Moving_Reservoir.msh")
+    gm.write("/home/erick/dev/Gmsh/TestErick/gmsh/Moving_Reservoircopy.msh")
 
     
     if '-nopopup' not in sys.argv:

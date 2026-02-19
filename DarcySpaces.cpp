@@ -309,7 +309,7 @@ int main(int argc, char *const argv[]) {
 
   // mark pyramids
   // MarkPyramids(gmesh);
-  DividePyramids(gmesh);
+  // DividePyramids(gmesh);
 
   cout << "Creating computational mesh H1..." << endl;
   TPZCompMesh *cmesh = createCompMesh(gmesh);
@@ -344,15 +344,9 @@ int main(int argc, char *const argv[]) {
   {
     const std::string plotfile = "postproct"; 
     TPZManVector<std::string, 2> fields = {"Pressure", "Flux"};
-    auto vtk = TPZVTKGenerator(cmesh, fields, plotfile, vtkRes);  
+    auto vtk = TPZVTKGenerator(cmeshMixed, fields, plotfile, vtkRes);  
     vtk.Do();
   }
-
-  an.Solution().Print("Solution");
-
-  cout<< "Computational mesh solution H1: "<<endl;
-  
-  cmesh->Solution().Print("CompMesh Solution");
 
   {
     const std::string plotfile = "postproct_mixed"; 
@@ -362,20 +356,19 @@ int main(int argc, char *const argv[]) {
   }
 
 
-  an.Solution().Print("Solution");
+  // an.Solution().Print("Solution");
 
-  cout<< "Computational mesh solution Mixed: "<<endl;
+  // cout<< "Computational mesh solution: "<<endl;
   
-  cmeshMixed->Solution().Print("CompMesh Mixed Solution");
-
+  // cmesh->Solution().Print("CompMesh Solution");
   
  
  
   // TPZRefPatternTools::RefinePyramids(gmesh, EMarkedPyramide, 1);
   
   // Plot gmesh
-  std::ofstream out("geomesh.vtk");
-  TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out);
+  // std::ofstream out("geomesh.vtk");
+  // TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out);
 
   return 0;
 }
