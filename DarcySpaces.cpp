@@ -49,6 +49,12 @@ enum EnumMatIds {
   EMarkedTetraedro = 110
 };
 
+enum EnumBCType {
+  EDirichlet = 0, // Dirichlet boundary condition
+  ENeumann = 1,   // Neumann boundary condition
+  EMixed = 2      // Mixed boundary condition
+};
+
 // ===================
 // Function prototypes
 // ===================
@@ -338,7 +344,7 @@ TPZMultiphysicsCompMesh* createCompMeshMixed(TPZGeoMesh *gmesh, int order) {
   cmesh->InsertMaterialObject(bcond);
   
   val2[0] = 0.;
-  bcond = matDarcy->CreateBC(matDarcy, ETampa, 1, val1, val2);
+  bcond = matDarcy->CreateBC(matDarcy, ETampa, ENeumann, val1, val2);
   cmesh->InsertMaterialObject(bcond);
 
   // Incorporate the atomic meshes into the multiphysics mesh

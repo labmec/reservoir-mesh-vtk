@@ -45,9 +45,11 @@ find_package(NeoPZ REQUIRED)
 # target_link_libraries(TestDarcy NeoPZ::pz)
 # target_link_libraries(TestErick NeoPZ::pz)
 
-add_executable(TestErick meshVisualization.cpp) 
+add_executable(TestErick meshVisualization.cpp)
+add_executable(Testmain mainDarcy.cpp) 
 add_executable(TestDarcy DarcySpaces.cpp)
 target_link_libraries(TestErick NeoPZ::pz)
+target_link_libraries(Testmain NeoPZ::pz)
 target_link_libraries(TestDarcy NeoPZ::pz)
 
 

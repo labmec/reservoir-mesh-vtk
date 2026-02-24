@@ -197,99 +197,6 @@ TPZCompMesh* createCompMesh(TPZGeoMesh* gmesh) {
 
 }
 
-TPZMultiphysicsCompMesh* createCompMeshMixed(TPZGeoMesh *gmesh, int order) {
-
-  // ------ Flux atomic cmesh -------
-
-  TPZCompMesh *cmeshFlux = new TPZCompMesh(gmesh);
-  cmeshFlux->SetDimModel(gmesh->Dimension());
-  cmeshFlux->SetDefaultOrder(order);
-  cmeshFlux->SetAllCreateFunctionsHDiv();
-
-  // Create boundary conditions
-  TPZManVector<REAL,1> val2(1,3.); // Part that goes to the RHS vector
-  TPZFMatrix<REAL> val1(1,1,0.); // Part that goes to the Stiffnes matrix
-
-  TPZNullMaterial<STATE> *mat = new TPZNullMaterial(EDomain, gmesh->Dimension());  
-  cmeshFlux->InsertMaterialObject(mat);
-
-  TPZBndCondT<REAL> *bcond = mat->CreateBC(mat, ECylinder, 1, val1, val2);
-  cmeshFlux->InsertMaterialObject(bcond);
-
-  val2[0] = 1.;
-  bcond = mat ->CreateBC(mat, EFarfield, 0, val1, val2);
-  cmeshFlux->InsertMaterialObject(bcond);
-
-  val2[0] = 0.;
-  bcond = mat ->CreateBC(mat, ETampa, 1, val1, val2);
-  cmeshFlux->InsertMaterialObject(bcond);
-
-  cmeshFlux->AutoBuild();
-
-  // ------ Pressure atomic cmesh -------
-
-  TPZCompMesh *cmeshPressure = new TPZCompMesh(gmesh);
-  cmeshPressure->SetDimModel(gmesh->Dimension());
-  cmeshPressure->SetDefaultOrder(order);
-  if (order < 1) {
-    cmeshPressure->SetAllCreateFunctionsDiscontinuous();
-  } else {
-    cmeshPressure->SetAllCreateFunctionsContinuous();
-    cmeshPressure->ApproxSpace().CreateDisconnectedElements(true);
-  }
-
-  // Add materials (weak formulation)
-  cmeshPressure->InsertMaterialObject(mat);
-
-  // Set up the computational mesh
-  cmeshPressure->AutoBuild();
-
-  int ncon = cmeshPressure->NConnects();
-  const int lagLevel = 1; // Lagrange multiplier level
-  for(int i=0; i<ncon; i++)
-  {
-      TPZConnect &newnod = cmeshPressure->ConnectVec()[i]; 
-      newnod.SetLagrangeMultiplier(lagLevel);
-  }
-
-  // ------ Multiphysics mesh -------
-
-  TPZMultiphysicsCompMesh *cmesh = new TPZMultiphysicsCompMesh(gmesh);
-  cmesh->SetDimModel(gmesh->Dimension());
-  cmesh->SetDefaultOrder(1); // Needed? Wasn't it already set in the atomic meshes?
-  cmesh->ApproxSpace().Style() = TPZCreateApproximationSpace::EMultiphysics;
-
-  // Add materials (weak formulation)
-  TPZMixedDarcyFlow *matDarcy = new TPZMixedDarcyFlow(EDomain, gmesh->Dimension());  
-  matDarcy->SetConstantPermeability(1.0);
-  matDarcy->SetForcingFunction(gexact.ForceFunc(),4);
-  matDarcy->SetExactSol(gexact.ExactSolution(),4);
-  cmesh->InsertMaterialObject(matDarcy);
-
-  // Create, set and add boundary conditions
-  val2[0] = 3.;
-  bcond = matDarcy->CreateBC(matDarcy, ECylinder, 0, val1, val2);
-  cmesh->InsertMaterialObject(bcond);
-
-  val2[0] = 1.;
-  bcond = matDarcy->CreateBC(matDarcy, EFarfield, 0, val1, val2);
-  cmesh->InsertMaterialObject(bcond);
-  
-  val2[0] = 0.;
-  bcond = matDarcy->CreateBC(matDarcy, ETampa, 1, val1, val2);
-  cmesh->InsertMaterialObject(bcond);
-
-  // Incorporate the atomic meshes into the multiphysics mesh
-  TPZManVector<TPZCompMesh *,2> cmeshes(2);
-  cmeshes[0] = cmeshFlux;
-  cmeshes[1] = cmeshPressure;
-
-  TPZManVector<int> active(cmeshes.size(),1);    
-  cmesh->BuildMultiphysicsSpace(active, cmeshes);
-
-  return cmesh;
-}
-
 
 // =============
 // Main function
@@ -325,19 +232,7 @@ int main(int argc, char *const argv[]) {
   an.SetSolver(step);
   an.Run();
 
-  cout << "Creating computational mesh mixed..." << endl;
-  TPZMultiphysicsCompMesh *cmeshMixed = createCompMeshMixed(gmesh, 1);
-  // cmeshMixed->Print(std::cout);
-  TPZLinearAnalysis anMixed(cmeshMixed);
-  TPZSSpStructMatrix<STATE> matmixed(cmeshMixed);
-  matmixed.SetNumThreads(gthreads);
-  anMixed.SetStructuralMatrix(matmixed);
-  TPZStepSolver<STATE> stepMixed;
-  stepMixed.SetDirect(ELDLt);
- 
-  anMixed.SetSolver(stepMixed);
-  anMixed.Run();
-
+  
   // Plotting
   constexpr int vtkRes{0}; 
 
@@ -354,24 +249,7 @@ int main(int argc, char *const argv[]) {
   
   cmesh->Solution().Print("CompMesh Solution");
 
-  {
-    const std::string plotfile = "postproct_mixed"; 
-    TPZManVector<std::string, 2> fields = {"Pressure", "Flux"};
-    auto vtk = TPZVTKGenerator(cmeshMixed, fields, plotfile, vtkRes);  
-    vtk.Do();
-  }
-
-
-  an.Solution().Print("Solution");
-
-  cout<< "Computational mesh solution Mixed: "<<endl;
   
-  cmeshMixed->Solution().Print("CompMesh Mixed Solution");
-
-  
- 
- 
-  // TPZRefPatternTools::RefinePyramids(gmesh, EMarkedPyramide, 1);
   
   // Plot gmesh
   std::ofstream out("geomesh.vtk");
