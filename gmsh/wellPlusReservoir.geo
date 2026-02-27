@@ -176,7 +176,6 @@ volumes_nearwell[] = Volume "*";
 // --- Begin: Volumes of the reservoir ---
 
 Box(1000) = {-(Lr-Lw)/2, -Wr/2, -Hr/2, Lr, Wr, Hr}; // Large box representing the reservoir
-//Box(1001) = {-(Lnw-Lw)/2, -Wnw/2, -Hnw/2, Lnw, Wnw, Hnw}; // Near-well region box
 sf17 = newsl; Surface Loop(sf17) = {sf1, sf2, sf3, sf4, sf5, sf6};
 vlAux = newv; Volume(vlAux) = {sf17}; // Near-well region volume
 v9() = BooleanDifference{ Volume{1000}; Delete; }{ Volume{vlAux}; Delete; }; // Reservoir volume with a hole for the near-well region
@@ -201,12 +200,12 @@ Physical Curve("curve_heel",102) = {1,2,3,4};
 Physical Surface("surface_wellbore_cylinder",103) = {1,2,3,4}; 
 Physical Surface("surface_wellbore_toe",104) = {sf20}; 
 Physical Surface("surface_wellbore_heel",105) = {sf19}; 
-Physical Surface("surface_farfield",106) = {sf1,sf2,sf3,sf4}; 
-Physical Surface("surface_cap_rock",107) = {sf5,sf6}; 
-Physical Point("point_heel",108) = {2};
-Physical Point("point_toe",109) = {6};
-Physical Volume("volume_nearwell",110) = {vl1,vl2,vl3,vl4,vl5,vl6};
-Physical Volume("volume_reservoir",111) = {v9};
+Physical Surface("surface_nearwell",106) = {sf1,sf2,sf3,sf4,sf5,sf6};
+Physical Surface("surface_farfield",107) = {77,78,79,80,81,82};
+Physical Point("point_heel",109) = {2};
+Physical Point("point_toe",110) = {6};
+Physical Volume("volume_nearwell",111) = {vl1,vl2,vl3,vl4,vl5,vl6};
+Physical Volume("volume_reservoir",112) = {v9};
 
 Delete{ Point{p1}; } // Center point no longer needed
 
