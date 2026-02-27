@@ -48,9 +48,11 @@ find_package(NeoPZ REQUIRED)
 add_executable(TestErick meshVisualization.cpp)
 add_executable(Testmain mainDarcy.cpp) 
 add_executable(TestDarcy DarcySpaces.cpp)
+add_executable(DarcySim DarcySimulations.cpp)
 target_link_libraries(TestErick NeoPZ::pz)
 target_link_libraries(Testmain NeoPZ::pz)
 target_link_libraries(TestDarcy NeoPZ::pz)
+target_link_libraries(DarcySim NeoPZ::pz)
 
 
 
