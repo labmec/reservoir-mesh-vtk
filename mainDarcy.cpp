@@ -157,6 +157,7 @@ int main (int argc, char * const argv[]) {
 
     an.Solution().Print("Solution");
     an.Rhs().Print("Rhs");
+    cmesh->Solution().Print("CompMesh Solution");
 
     // ------ Compute errors ------
 

@@ -75,6 +75,8 @@ void MarkETetraedros(TPZGeoMesh *gmesh);
 TPZCompMesh* createCompMesh(TPZGeoMesh* gmesh);
 TPZMultiphysicsCompMesh* createCompMeshMixed(TPZGeoMesh* gmesh, int pOrder);
 
+void ProjectCpnstantSolution(TPZMultiphysicsCompMesh* cmesh);
+
 // =============
 // Main function
 // =============
@@ -95,6 +97,14 @@ int main(int argc, char *const argv[]) {
   // MarkPyramids(gmesh);
   DividePyramids(gmesh);
 
+  { std::ofstream out ("GeoMesh.txt");
+    gmesh ->Print(out);
+    std::ofstream out2 ("GeoMesh.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, out2, true, true);
+  }
+
+  std::cout << "Number of geometric elements: " << gmesh->NElements() << std::endl;
+
   // H1 solver
   cout << "Creating computational mesh H1..." << endl;
   TPZCompMesh *cmesh = createCompMesh(gmesh);
@@ -110,6 +120,8 @@ int main(int argc, char *const argv[]) {
   // Mixed solver (H(div)-L2)
   cout << "Creating computational mesh mixed..." << endl;
   TPZMultiphysicsCompMesh *cmeshMixed = createCompMeshMixed(gmesh, 1);
+
+  ProjectCpnstantSolution(cmeshMixed);
   TPZLinearAnalysis anMixed(cmeshMixed);
   TPZSSpStructMatrix<STATE> matMixed(cmeshMixed);
   matMixed.SetNumThreads(gthreads);
@@ -117,7 +129,31 @@ int main(int argc, char *const argv[]) {
   TPZStepSolver<STATE> stepMixed;
   stepMixed.SetDirect(ELDLt);
   anMixed.SetSolver(stepMixed);
-  anMixed.Run();
+  //anMixed.Run();
+  anMixed.Assemble();
+
+  TPZAutoPointer<TPZMatrix<STATE>> stiff;
+  TPZFMatrix<STATE> Res;
+
+  {
+    auto solver = anMixed.Solver();
+    TPZMatrixSolver<STATE> *matrixSolver = dynamic_cast<TPZMatrixSolver<STATE> *>(solver);
+    stiff = matrixSolver->Matrix();
+    TPZFMatrix<STATE> sol = cmeshMixed->Solution();
+    sol.Resize(cmeshMixed->NEquations(), 1);
+
+    TPZFMatrix<STATE> rhs = anMixed.Rhs();
+    stiff->MultAdd(sol, rhs, Res, -1., 1.);
+  }
+
+  REAL norm = Norm(Res);
+  cout << "Norm of Residual = " << norm << endl;
+  TPZFMatrix<STATE> RHSExpand = Res;
+  RHSExpand.Resize(cmeshMixed->Solution().Rows(), 1);
+  cmeshMixed->LoadSolution(Res);
+  RHSExpand = cmeshMixed->Solution();
+  std::ofstream out("RHSExpand.txt");
+  anMixed.PrintVectorByElement(out, RHSExpand);
 
   {
     constexpr int vtkRes{0}; 
@@ -135,6 +171,11 @@ int main(int argc, char *const argv[]) {
     vtk.Do();
   }
 
+  {
+    std::ofstream out("MixedMesh.txt");
+    cmeshMixed ->Print(out);
+  }
+  
   return 0;
 }
 
@@ -157,10 +198,9 @@ TPZGeoMesh *createGeoMesh(std::string file) {
     stringtoint[2]["surface_wellbore_cylinder"] = ECylinder;
     stringtoint[2]["surface_wellbore_heel"] = ETampa;
     stringtoint[2]["surface_wellbore_toe"] = ETampa;
-    stringtoint[2]["surface_farfield"] = EFarfield;
-    stringtoint[2]["surface_cap_rock"] = EFarfield;
+    // stringtoint[2]["surface_farfield"] = EFarfield;
+    // stringtoint[2]["surface_cap_rock"] = EFarfield;
     stringtoint[2]["surface_farfield_reservoir"] = EFarfield;
-    stringtoint[2]["nome_do_msh"] = EBoundary;
 
     stringtoint[1]["curve_wellbore"] = ENone;
     stringtoint[1]["curve_heel"] = ECurveTampa;
@@ -249,7 +289,7 @@ TPZCompMesh* createCompMesh(TPZGeoMesh* gmesh) {
   
   int diritype = 0, neumanntype = 1, robinntype = 2;
   
-  val2[0] = 3.;
+  val2[0] = 1.;
   cmesh ->InsertMaterialObject(
   material ->CreateBC(material, EFarfield, diritype, val1, val2));
 
@@ -257,9 +297,9 @@ TPZCompMesh* createCompMesh(TPZGeoMesh* gmesh) {
   cmesh -> InsertMaterialObject(
   material ->CreateBC(material, ECylinder, diritype, val1, val2));
 
-  val2[0] = 0.;
+  val2[0] = 1.;
   cmesh -> InsertMaterialObject(
-  material ->CreateBC(material, ETampa, neumanntype, val1, val2));
+  material ->CreateBC(material, ETampa, diritype, val1, val2));
   
   cmesh->AutoBuild();
   cmesh->CleanUpUnconnectedNodes();
@@ -270,6 +310,8 @@ TPZCompMesh* createCompMesh(TPZGeoMesh* gmesh) {
 TPZMultiphysicsCompMesh* createCompMeshMixed(TPZGeoMesh *gmesh, int order) {
 
   // ------ Flux atomic cmesh -------
+
+  gmesh->ResetReference();
 
   TPZCompMesh *cmeshFlux = new TPZCompMesh(gmesh);
   cmeshFlux->SetDimModel(gmesh->Dimension());
@@ -298,6 +340,8 @@ TPZMultiphysicsCompMesh* createCompMeshMixed(TPZGeoMesh *gmesh, int order) {
 
   // ------ Pressure atomic cmesh -------
 
+  gmesh->ResetReference();
+
   TPZCompMesh *cmeshPressure = new TPZCompMesh(gmesh);
   cmeshPressure->SetDimModel(gmesh->Dimension());
   cmeshPressure->SetDefaultOrder(order);
@@ -324,6 +368,8 @@ TPZMultiphysicsCompMesh* createCompMeshMixed(TPZGeoMesh *gmesh, int order) {
 
   // ------ Multiphysics mesh -------
 
+  gmesh->ResetReference();
+
   TPZMultiphysicsCompMesh *cmesh = new TPZMultiphysicsCompMesh(gmesh);
   cmesh->SetDimModel(gmesh->Dimension());
   cmesh->SetDefaultOrder(order);
@@ -339,12 +385,12 @@ TPZMultiphysicsCompMesh* createCompMeshMixed(TPZGeoMesh *gmesh, int order) {
   bcond = matDarcy->CreateBC(matDarcy, ECylinder, 0, val1, val2);
   cmesh->InsertMaterialObject(bcond);
 
-  val2[0] = 3.;
+  val2[0] = 1.;
   bcond = matDarcy->CreateBC(matDarcy, EFarfield, 0, val1, val2);
   cmesh->InsertMaterialObject(bcond);
   
-  val2[0] = 0.;
-  bcond = matDarcy->CreateBC(matDarcy, ETampa, ENeumann, val1, val2);
+  val2[0] = 1.;
+  bcond = matDarcy->CreateBC(matDarcy, ETampa, 0, val1, val2);
   cmesh->InsertMaterialObject(bcond);
 
   // Incorporate the atomic meshes into the multiphysics mesh
@@ -356,4 +402,21 @@ TPZMultiphysicsCompMesh* createCompMeshMixed(TPZGeoMesh *gmesh, int order) {
   cmesh->BuildMultiphysicsSpace(active, cmeshes);
 
   return cmesh;
+}
+
+void ProjectCpnstantSolution(TPZMultiphysicsCompMesh* cmesh) {
+  int64_t ncon = cmesh->NConnects();
+  TPZFMatrix<STATE> &sol = cmesh->Solution();
+  sol.Zero();
+  for(int i=0; i<ncon; i++)
+  {
+      TPZConnect &newnod = cmesh->ConnectVec()[i]; 
+      if (newnod.LagrangeMultiplier() == 1)
+      {
+        int64_t seqnum = newnod.SequenceNumber();
+        int64_t pos = cmesh->Block().Position(seqnum);
+        sol(pos,0) = 1.;
+      }
+  }
+  cmesh->TransferMultiphysicsSolution();
 }
