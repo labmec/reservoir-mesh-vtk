@@ -1,16 +1,16 @@
 import gmsh as gm
 import sys
 from networkx import nodes
-from networkx import nodes
 import numpy as np
 import json
-
+import os
 
 
 import gmsh
 import numpy as np
 
-filename = "/home/erick/dev/Gmsh/TestErick/wann3d_reservoirTest.json.json"
+filename = os.path.join(os.path.dirname(__file__), "../wann3d_reservoirTest.json")
+print(f"Reading JSON file: {filename}")
 
 def read_json(filename):
     with open(filename, 'r') as file:

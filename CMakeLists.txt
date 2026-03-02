@@ -28,7 +28,7 @@ if(NOT DEFINED NeoPZ_DIR)
 endif()
 list(APPEND CMAKE_PREFIX_PATH "${NeoPZ_DIR}")
 
-find_package(NeoPZ REQUIRED)
+find_package(NeoPZ REQUIRED HINTS ${CMAKE_SOURCE_DIR}/neopz_install/ ${CMAKE_SOURCE_DIR}/../neopz_install/)
 
 # add_custom_target( GlocalFiles Sources ${PZ_SRC})
 
